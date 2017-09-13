@@ -16,3 +16,7 @@ dd {
     border:0 ;
     box-shadow: none;
 }
+
+.img-responsive {
+	margin: auto 0;
+}
