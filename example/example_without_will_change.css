@@ -10,9 +10,9 @@ body {
   height: 100%;
 }
 body {
-  background-color: #5381ac;
-  color: rgb(255, 255, 255);
-  font-family: 'Montserrat', sans-serif;
+  background-color: #45a173;
+  color: #333;
+  font-family: 'Open Sans', sans-serif;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -37,7 +37,7 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  background-color: rgb(18, 42, 70);
+  background-color: #334d41;
   padding: 0.25rem;
   text-align: center;
 }
@@ -62,8 +62,8 @@ body {
   top: 2.5rem;
   left: 0;
   width: 100%;
-  padding: 1rem 1rem;
-  font-size: 1rem;
+  padding: 1rem 0.5rem;
+  font-size: 0.5rem;
   text-align: center;
 }
 .card {
@@ -79,7 +79,6 @@ body {
   -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.15);
   box-shadow: 0 1px 1px rgba(0,0,0,0.15);
   cursor: default;
-  will-change: transform;
 }
 .card:before,
 .card:after {
@@ -365,12 +364,6 @@ body {
 }
 .card.joker.rank3 .face {
   background-image: url("faces/4_3.svg");
-}
-.card.Dracula .face {
-  background-image: url("faces/drac.svg");
-}
-.card.Ashley .face {
-  background-image: url("faces/ash.svg");
 }
 @media (max-width: 540px) {
   #topbar {
