@@ -53,17 +53,30 @@ body {
   color: #fff;
   cursor: pointer;
 }
-#topbar button:hover {
+#topbar button:hover:enabled {
   background-color: #fff;
   color: #444;
 }
+#topbar button:disabled {
+  color: #444;
+  border: 1px solid #444;
+  cursor: default;
+}
 .message {
   position: fixed;
-  top: 2.5rem;
+  top: 50vh;
   left: 0;
   width: 100%;
   padding: 1rem 1rem;
   font-size: 1rem;
+  text-align: center;
+}
+.card-count {
+  position: fixed;
+  top: 50vh;
+  left: 45vw;
+  padding: 0.8rem 0.8rem;
+  font-size: 0.8rem;
   text-align: center;
 }
 .card {
