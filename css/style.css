@@ -58,9 +58,12 @@ body {
   color: #444;
 }
 #topbar button:disabled {
-  color: #444;
-  border: 1px solid #444;
+  color: #22C;
+  border: 1px solid #22C;
   cursor: default;
+}
+span {
+ padding: 15px; 
 }
 .message {
   position: fixed;
@@ -69,15 +72,29 @@ body {
   width: 100%;
   padding: 1rem 1rem;
   font-size: 1rem;
+  text-align: left;
+}
+.instruction {
+  position: fixed;
+  top: 35vh;
+  left: 50vw;
+  padding: 1rem;
+  font-size: 1rem;
   text-align: center;
 }
-.card-count {
+.score, .nametext, .card-count {
   position: fixed;
-  top: 50vh;
-  left: 45vw;
-  padding: 0.8rem 0.8rem;
-  font-size: 0.8rem;
+  top: 70vh;
+  left: 50vw;
+  padding: 0.7rem;
+  font-size: 0.7rem;
   text-align: center;
+}
+.nametext {
+  top: 64vh;
+}
+.card-count {
+  top: 67vh;
 }
 .card {
   position: absolute;

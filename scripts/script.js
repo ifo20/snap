@@ -1,25 +1,31 @@
 ﻿'use strict';
 //// CONFIG
 var config = {
-  numberOfCards: 52,
+  numberOfCards: 5,
   playerNames: [ 'Ashley','Dracula'],
-  turnSpeed: 800,
-  defaultDelay: 400,
-  msgSpacing: 20
+  turnSpeed: 500,
+  cardSpeed: 200,
+  defaultDelay: 500,
+  defaultDuration: 1000,
+  msgSpacing: 25
 };
 var msgs = [];
+var rankNames = ['undefined?', 'ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king'];
+var deckshuffled = false;
+var cardsdealt = false;
 //// END CONFIG
 
 //// HELPERS
 function printOutput (text) {
+  console.log('PRINT: ' + text);
   var animationFrames = Deck.animationFrames
   var ease = Deck.ease
 
   function moveUp(m, startY, endY){
-    animationFrames(0,config.defaultDelay)
+    animationFrames(0,config.defaultDuration)
     .progress(function (t) {
         t = ease.cubicInOut(t)
-        m.style[transform] = translate('0px', (startY + ((endY-startY) * t)) + 'px')
+        m.style[transform] = translate('50px', (startY + ((endY-startY) * t)) + 'px')
     })
     .end(function() {
     })
@@ -32,17 +38,41 @@ function printOutput (text) {
   document.body.appendChild($message)
   var msgCount = msgs.length;
   msgs.forEach(function(m, i){
-    var oldY = -200;
-    var newY = oldY - (msgCount - i)*config.msgSpacing;
+    var abc = m.style[transform];
+    var oldY = -200 - (msgCount - i - 1)*config.msgSpacing;;
+    var newY = oldY - config.msgSpacing;
     moveUp(m, oldY, newY);
   });
   msgs.push($message);
 
-  animationFrames(1, 400)
+  animationFrames(0, config.defaultDuration)
     .progress(function (t) {
       t = ease.cubicInOut(t)
       $message.style.opacity = t;
-      $message.style[transform] = translate('0px', (-200 * t) + 'px')
+      $message.style[transform] = translate('50px', (-200 * t) + 'px')
+    })
+    .end(function () {
+        setTimeout(function() {
+        document.body.removeChild($message);
+        }, 4000);
+    })
+}
+function showInstructions(text, x=200,y=100){
+  console.log('INSTRUCTION: ' + text);
+  var animationFrames = Deck.animationFrames
+  var ease = Deck.ease
+
+  var $message = document.createElement('p')
+  $message.classList.add('message')
+  $message.textContent = text
+  $message.style.opacity = 0
+  document.body.appendChild($message)
+  
+  animationFrames(0, config.defaultDuration*3)
+    .progress(function (t) {
+      t = ease.cubicInOut(t)
+      $message.style.opacity = t;
+      $message.style[transform] = translate(x + 'px', (y * t) + 'px')
     })
     .end(function () {
         setTimeout(function() {
@@ -58,6 +88,9 @@ function addListener(target, name, listener) {
 }
 function removeListener(target, name, listener) {
   target.removeEventListener(name, listener);
+}
+function fontSize() {
+  return window.getComputedStyle(document.body).getPropertyValue('font-size').slice(0, -2);
 }
 var ease = {
   linear: function linear(t) {
@@ -365,6 +398,7 @@ var Deck = (function () {
     var rank = i % 13 + 1;
     var suit = (i % 52) / 13 | 0;
     var z = (config.numberOfCards - i)/4;
+    var name = RankName(rank) + ' of ' + SuitName(suit);
 
     // create elements
     var $el = createElement('div');
@@ -376,7 +410,7 @@ var Deck = (function () {
     var isFlippable = false;
     
     // self = card
-    var self = { i: i, rank: rank, suit: suit, pos: i, $el: $el, mount: mount, unmount: unmount, setSide: setSide };
+    var self = { i: i, rank: rank, suit: suit, pos: i, $el: $el, mount: mount, unmount: unmount, setSide: setSide, name: name };
 
     var modules = Deck.modules;
     var module;
@@ -407,7 +441,8 @@ var Deck = (function () {
     }
 
     self.animateTo = function (params) {
-      console.log('animateTo (deck)');
+      console.log('moving the following card');
+      console.log(self);
       var delay = params.delay;
       var duration = params.duration;
       var _params$x = params.x;
@@ -604,8 +639,11 @@ var Deck = (function () {
   }
 
   function SuitName(suit) {
-    // return suit name from suit value
     return suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker';
+  }
+
+  function RankName(rank) {
+    return rankNames[rank];
   }
 
   var flip = {
@@ -658,7 +696,7 @@ var Deck = (function () {
 
         _card2.animateTo({
           delay: delay,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -150,
@@ -671,7 +709,7 @@ var Deck = (function () {
 
         _card2.animateTo({
           delay: delay + 500,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -710,6 +748,9 @@ var Deck = (function () {
             }
           });
         });
+        setTimeout(function(){
+          deckshuffled = true;
+        }, config.numberOfCards * 2 + config.defaultDelay + 2 * config.cardSpeed);
         return;
       }
     },
@@ -721,18 +762,17 @@ var Deck = (function () {
         var i = _card3.pos;
         var z = i / 4;
         var delay = i * 2;
-        console.log('deckshufflecard');
         _card3.animateTo({
-          delay: delay,
-          duration: 100,
+          delay: config.defaultDelay + delay,
+          duration: config.cardSpeed,
 
           x: _card3.x + (plusminus(Math.random() * 40 + 20) * ____fontSize / 16),
           y: _card3.y - z,
           rot: 0
         });
         _card3.animateTo({
-          delay: 100 + delay,
-          duration: 100,
+          delay: config.defaultDelay + delay + config.cardSpeed,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -780,7 +820,7 @@ var Deck = (function () {
 
         _card4.animateTo({
           delay: delay,
-          duration: 250,
+          duration: config.cardSpeed,
 
           x: Math.round((i - 2.05) * 70 * __fontSize / 16),
           y: Math.round(-110 * __fontSize / 16),
@@ -811,7 +851,6 @@ var Deck = (function () {
               card.setSide('back');
             });
             if (i === cards.length - 1) {
-              console.log(next);
               next();
             }
           });
@@ -835,7 +874,7 @@ var Deck = (function () {
 
         _card5.animateTo({
           delay: delay,
-          duration: 1000,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -886,7 +925,7 @@ var Deck = (function () {
 
         _card6.animateTo({
           delay: delay,
-          duration: 300,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -894,7 +933,7 @@ var Deck = (function () {
         });
         _card6.animateTo({
           delay: 300 + delay,
-          duration: 300,
+          duration: config.cardSpeed,
 
           x: Math.cos(deg2rad(rot - 90)) * 55 * _fontSize / 16,
           y: Math.sin(deg2rad(rot - 90)) * 55 * _fontSize / 16,
@@ -919,7 +958,7 @@ var Deck = (function () {
       _card9.play = function (cb) {
         _card9.animateTo({
           delay: 0,
-          duration: 400,
+          duration: config.cardSpeed,
           x: 0,
           y: 0,
           rot: 0,
@@ -959,7 +998,7 @@ var Deck = (function () {
 
         _card7.animateTo({
           delay: delay,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -Math.round((6.75 - rank) * 8 * ___fontSize / 16),
           y: -Math.round((1.5 - suit) * 92 * ___fontSize / 16),
@@ -1008,6 +1047,7 @@ var Deck = (function () {
     function deal(players,cards=999999){
       console.log('dealing');
       var n = players.length;
+      var tmp = 0;
       var cardsDealtPerPlayer = 0;
       while (cardsDealtPerPlayer < cards){
         // Deal card to every player
@@ -1019,12 +1059,13 @@ var Deck = (function () {
             var z = player.hand.cards.length;
             player.hand.cards.push(nc);
             nc.animateTo({
-              delay: 0,
-              duration: 999,
+              delay: 10*i,
+              duration: config.cardSpeed,
               x: player.hand.rootx - player.hand.cards.length/4,
               y: player.hand.rooty - player.hand.cards.length/4,
               z: z
             });
+            tmp += 1;
           }
           else {
             return -1;
@@ -1032,17 +1073,12 @@ var Deck = (function () {
         });
         cardsDealtPerPlayer += 1;
       }
+      setTimeout(function() {
+        cardsdealt = true;
+      }, config.cardSpeed)
     };
     self.deal = deal;
 
-    // // Define translate function
-    // function animateTo(params){
-    //   self.cards.forEach(function(c){
-    //     c.animateTo(params);
-    //   })
-    // };
-    // self.animateTo = animateTo;
-    
     return self;
 
     function mount(root) {
@@ -1155,7 +1191,6 @@ var Hand = (function () {
       self.style.zIndex = z;
 
       animationFrames(delay, duration).start(function () {
-        console.log('aniframesstart');
         startX = self.x || 0;
         startY = self.y || 0;
         startZ = self.z || 0;
@@ -1388,7 +1423,7 @@ var Hand = (function () {
 
         _card2.animateTo({
           delay: delay,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -150,
@@ -1401,7 +1436,7 @@ var Hand = (function () {
 
         _card2.animateTo({
           delay: delay + 500,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -1454,14 +1489,14 @@ var Hand = (function () {
         
         _card3.animateTo({
           delay: delay,
-          duration: 100,
-          x: _hand3.rootx + plusminus(Math.random() * 40 + 20),
+          duration: config.cardSpeed,
+          x: _hand3.rootx + plusminus(Math.random() * 400 + 20),
           y: _hand3.rooty -z,
           rot: 0
         });
         _card3.animateTo({
           delay: 100 + delay,
-          duration: 100,
+          duration: config.cardSpeed,
 
           x: _hand3.rootx -z,
           y: _hand3.rooty -z,
@@ -1512,7 +1547,7 @@ var Hand = (function () {
 
         _card6.animateTo({
           delay: delay,
-          duration: 300,
+          duration: config.cardSpeed,
 
           x: -z,
           y: -z,
@@ -1520,7 +1555,7 @@ var Hand = (function () {
         });
         _card6.animateTo({
           delay: 300 + delay,
-          duration: 300,
+          duration: config.cardSpeed,
 
           x: Math.cos(deg2rad(rot - 90)) * 55 * _fontSize / 16,
           y: Math.sin(deg2rad(rot - 90)) * 55 * _fontSize / 16,
@@ -1545,7 +1580,7 @@ var Hand = (function () {
       _card9.play = function (cb) {
         _card9.animateTo({
           delay: 0,
-          duration: 400,
+          duration: config.cardSpeed,
           x: 0,
           y: 0,
           rot: 0,
@@ -1585,7 +1620,7 @@ var Hand = (function () {
 
         _card7.animateTo({
           delay: delay,
-          duration: 400,
+          duration: config.cardSpeed,
 
           x: -Math.round((6.75 - rank) * 8 * ___fontSize / 16),
           y: -Math.round((1.5 - suit) * 92 * ___fontSize / 16),
@@ -1665,7 +1700,7 @@ var Avatar = (function() {
   });
   
   function _card(i){
-    console.log('constructig card for avatar');
+    console.log('constructing card for avatar');
     // create elements
     var $el = createElement('div');
     var $face = createElement('div');
@@ -1793,7 +1828,6 @@ var Avatar = (function() {
     cards[0].setSide('front');
     cards[0].mount($el);
     cards[0].setRankSuit(i);
-    console.log(cards[0]);
     return self;
     
     function mount(root) {
@@ -1814,28 +1848,38 @@ var Avatar = (function() {
 //// END AVATAR
 
 
-
 //// PAGE LOAD
 $(document).ready(function () {
 
   var $container = document.getElementById('container');
   var $topbar = document.getElementById('topbar');
   var $play = document.createElement('button');
-  var $watch = document.createElement('button');
+  var $simulate = document.createElement('button');
   var $reset = document.createElement('button');
+  var $yourTurn = document.createElement('p');
+
   $play.textContent = 'Play';
-  $watch.textContent = 'Watch';
+  $simulate.textContent = 'Simulate';
   $reset.textContent = 'Reset';
-  
+  $yourTurn.textContent = 'Your turn!';
+
   $topbar.appendChild($play);
-  $topbar.appendChild($watch);
+  $topbar.appendChild($simulate);
   $topbar.appendChild($reset);
+
+  var animationFrames = Deck.animationFrames
+  var ease = Deck.ease
+
+  $yourTurn.style.opacity = 0;
+  $yourTurn.classList.add('instruction');
+  $yourTurn.style[transform] = translate((-fontSize()*5)+'px', '0px')
+  document.body.appendChild($yourTurn);
   
   $play.addEventListener('click', function () {
     play();
   })
 
-  $watch.addEventListener('click', function () {
+  $simulate.addEventListener('click', function () {
     simulate();
   })
 
@@ -1846,27 +1890,41 @@ $(document).ready(function () {
   document.addEventListener('keydown', (event) => {
     if (event.keyCode == 65 && isUserTurn) {
         userPlayCard();
+        itsYourTurn(false);
     }
     else if (event.keyCode == 83 && interactive ) {
-        snap(true);
+        callSnap(0, true);
     }
   });
 
   class Player {
-    constructor(name, index, mu=0.5, sigma=0.1) {
+    constructor(name, index, mu=defaultmu, sigma=defaultsigma) {
       var x = 250*(2*index - 1);
       var y = 0;
+      this.alive = true;
       this.name = name;
+      this.nametext = document.createElement('p');
+      this.nametext.textContent = name;
+      this.nametext.classList.add('nametext');
+      this.nametext.style[transform] = translate((x/2 - 35) + 'px', (y) + 'px');
+      document.body.appendChild(this.nametext);
       this.hand = Hand(name, x, y);
       this.hand.mount($container);
-      this.avatar = Avatar(name, x - 100, y - 100, index);
+      this.avatar = Avatar(name, x, y, index);
       this.avatar.mount($container);
       this.avatar.cards[0].animateTo({delay: 0, duration: 500, x: x/2, y: 0});
       this.cardCountText = document.createElement('p');
       this.cardCountText.classList.add('card-count');
-      this.cardCountText.style[transform] = translate((x) + 'px',(y + 80) + 'px');
+      this.cardCountText.style[transform] = translate((x/2 - 35) + 'px',(y) + 'px');
       document.body.appendChild(this.cardCountText); 
       this.updateCardCount = () => this.cardCountText.textContent = "Cards: " + this.hand.cards.length;
+      this.score = document.createElement('p');
+      this.score.classList.add('score');
+      this.points = 0;
+      this.updateScore = () => this.score.textContent = 'Games won: ' + this.points;
+      this.updateScore();
+      this.score.style[transform] = translate((x/2 - 35) + 'px',(y) + 'px'); 
+      document.body.appendChild(this.score);     
       this.mu = mu;
       this.sigma = sigma;
     }
@@ -1875,46 +1933,64 @@ $(document).ready(function () {
     }
   };
 
+  function itsYourTurn(itisyourturn){
+    animationFrames(0, config.defaultDuration/10)
+    .progress(function (t) {
+      t = ease.cubicInOut(t);
+      if (itisyourturn) {
+        $yourTurn.style.opacity = t;
+      }
+      else {
+        $yourTurn.style.opacity = 1 - t;
+      }
+    });
+  }
+
   function generatePlayers(){
-    return config.playerNames.map(function (name, index, mu, sigma) {    
-      return new Player(name, index, mu, sigma);
+    return config.playerNames.map(function (name, index) {    
+      return new Player(name, index);
     });
   };
 
-
   function pickUpCards(winner){
+    pickingUp = true;
     var player = players[winner];
     var tmp = 0;
     while (table.cards.length > 0){
         var nc = table.cards.pop();
         nc.setSide('back');
         player.hand.cards.push(nc);
+        console.log('just picked up the following card from the table');
+        console.log(nc);
         nc.animateTo({
-            delay: 100 * tmp,
-            duration: config.defaultDelay,
+            delay: 10 * tmp,
+            duration: config.cardSpeed,
             x: player.hand.rootx - player.hand.cards.length/4,
             y: player.hand.rooty - player.hand.cards.length/4,
-            z: player.hand.cards.length
+            z: player.hand.cards.length,
+            rot: 0
         });
         player.updateCardCount();
-        tmp += 1;
+        tmp += 0.5;
       }
+    setTimeout(function () { pickingUp = false; }, 10*tmp + config.cardSpeed);
   };
   function generateGaussian(mu,sigma){
     var c = Math.cos(2 * Math.PI * Math.random());
     var s = Math.sqrt(-2 * Math.log(Math.random()));
-    
-    return mu + (c * s *sigma);
+    var g = mu + (c * s *sigma);
+    return g;
   }
   function generateReactionTime(mu, sigma){
       return generateGaussian(mu,sigma);
   }
 
-  function snapInner(winner){
+  function slam(winner, reactionTime){
     var player = players[winner];
     var k = table.cards.length;
-    printOutput(player + ' slams their hand on the table!');
+    printOutput(player + ' slams their hand on the table! (reaction time: ' + reactionTime.toFixed(2) + ')');
     if (k > 1 && table.cards[k - 1].rank == table.cards[k - 2].rank){
+      pickingUp = true;
       printOutput(player + ' picks up their winnings')
       pickUpCards(winner);
     }
@@ -1923,7 +1999,26 @@ $(document).ready(function () {
     }
   }
 
-  function snap(wasUser = false){
+  function callSnap(playerId, wasUser = false){
+    calculatedReactionTime = (Date.now() - cardplayedat)/1000;
+    var k = table.cards.length;
+    if (k > 1 && table.cards[k - 1].rank == table.cards[k - 2].rank){
+      // Call was valid
+      slam(playerId, calculatedReactionTime);
+    }
+    else {
+      // Call was not valid
+      if (wasUser){
+        printOutput('Naughty!');
+      }
+    }
+  }
+
+  function simulateSnap(){
+    var k = table.cards.length;
+    if (k <= 1 || table.cards[k-1].rank != table.cards[k-2].rank){
+      return;
+    }
     var winningIdx;
     var winningTime;
     if (!interactive){
@@ -1931,7 +2026,7 @@ $(document).ready(function () {
         let a = generateReactionTime(p.mu, p.sigma);
         return { idx: i, time: a }
       });
- 
+
       let winner = reactions
         .reduce(function(acc, cv) {
             if (cv.time < acc.time) acc = cv;
@@ -1940,15 +2035,10 @@ $(document).ready(function () {
       winningIdx = winner.idx;
       winningTime = winner.time;
     }
-    else if (wasUser) {
-      printOutput('SNAP!');
-      winningIdx = 0;
-      winningTime = 0;
-    }
     else {
       let reactions = players.map((p,i) => {
         if (i > 0) {
-          let a = generateReactionTime(p.mu, p.sigma);  
+          let a = generateReactionTime(p.mu, p.sigma); 
           return { idx: i, time: a }
         }
         else {
@@ -1964,133 +2054,206 @@ $(document).ready(function () {
         winningIdx = winner.idx;
         winningTime = winner.time;
     }
+    console.log(winningTime);
 
-    let k = table.cards.length;
-    if (k > 1){
-        let a = table.cards[k - 1];
-        let b = table.cards[k - 2];
-        if (a.rank == b.rank){
-          setTimeout(function(){
-                snapInner(winningIdx)
-            }, 1000 * winningTime)
-        }
-    }
-  };
+    setTimeout(function() {
+      callSnap(winningIdx);
+    }, winningTime*1000);
+  }
 
   function userPlayCard(){
     isUserTurn = false;
     playCard(0);
+    finishTurn();
   };
 
-  function playCard(currentPlayer){
+  function playCard(){
+    console.log('playing card..');
     var player = players[currentPlayer];
-    if (player.hand.cards.length == 0 && gameinprogress){
-        printOutput(player + ' lost!');
-        gameinprogress = false;
-        return -1;
+    if (player.hand.cards.length == 0){
+      console.log("Can't play card; hand empty");  
+      return;
     }
     var thisCard = player.hand.cards.pop();
     player.updateCardCount();
+    printOutput(player + ' plays the ' + thisCard.name + '!');
     table.cards.push(thisCard);
     thisCard.setSide("front");
     thisCard.animateTo({
       delay: 0,
-      duration: config.defaultDelay,
+      duration: config.cardSpeed,
       x: table.rootx - table.cards.length/4,
       y: table.rooty - table.cards.length/4,
       z: table.cards.length,
       rot: (Math.random() - 0.5)*10
     });
-    snap();
-    currentPlayer = (currentPlayer + 1) % players.length;
-
-    return processTurn(currentPlayer);
+    cardplayedat = Date.now();
   };
+
+  function finishTurn(){
+    simulateSnap();
+    setTimeout(function() { 
+      currentPlayer = (currentPlayer + 1) % players.length;
+      processTurn();
+     }, config.defaultDelay);
+  }
   
-  function processTurn(currentPlayer){
-      if (interactive && currentPlayer == 0){
-        printOutput('Your turn! Press A to play your next card');
-        // await button press
-        isUserTurn = true;
-        return;
+  function processTurn(){
+    if (pickingUp){
+      console.log('waiting for cards to be picked up...');
+      setTimeout(processTurn, config.defaultDelay);
+      return;
+    }
+    console.log('processing turn (player ' + currentPlayer + ')');
+    if (players[currentPlayer].hand.cards.length == 0 && gameinprogress){
+      printOutput(players[currentPlayer] + ' is out!');
+      players[currentPlayer].alive = false;
+      playersAlive -= 1;
+      if (playersAlive == 1){
+        var winner = players.filter(p => p.alive == true);
+        console.log(winner);
+        printOutput(winner[0] + ' wins!');
+        winner[0].points += 1;
+        winner[0].updateScore();
       }
+      return;
+    }
+
+    if (interactive && currentPlayer == 0 && gameinprogress){
+      itsYourTurn(true);
+      isUserTurn = true;
+      return; // await button press
+    }
+
+    if (gameinprogress && !pickingUp){
+      console.log('setting timer for playCard call');
       setTimeout(function() {
-        if (gameinprogress){
-          playCard(currentPlayer);
+        if (gameinprogress && !pickingUp){
+          playCard();
+          finishTurn();
+        }
+        else {
+          console.log('waiting for cards to be picked up');
+          setTimeout(processTurn, config.defaultDelay);
         }
       }, config.turnSpeed);
-  };
+    }
+  }
   
   function play(){
-    $watch.disabled = true;
+    $simulate.disabled = true;
     $play.disabled = true;
     $reset.disabled = false;
     
     printOutput('Starting game!');
+    interactive = true;
     var deck = Deck();
     deck.mount($container);
+    printOutput('Shuffling...');
     deck.shuffle();
     table = Hand("table", 0, 0);
+    function deal() {
+      if (deckshuffled) {
+        printOutput('Dealing...');
+        deck.deal(players);
+      }
+      else {
+        console.log('waiting for cards to be shuffled');
+        setTimeout(deal, config.defaultDelay);
+      }
+    }
+    setTimeout(deal, config.defaultDelay);
 
-    setTimeout(function(){
-      deck.deal(players);
-    }, config.defaultDelay);
+    function startInteractiveGame() {
+      if (cardsdealt) {
+        printOutput('Starting interactive game...');
+        showInstructions('Press A to play your next card, S to SNAP!');
+        gameinprogress = true;
+        isUserTurn = true;
+        processTurn();
+      }
+      else {
+        console.log('waiting for cards to be dealt');
+        setTimeout(startInteractiveGame, config.defaultDelay);
+      }
+    }
 
-    interactive = true;
-    isUserTurn = true;
-    // TODO display instructions
-    gameinprogress = true;
-    let currentPlayer = 0;
-    setTimeout(function(){
-      processTurn(currentPlayer);
-    }, config.defaultDelay);
+    setTimeout(startInteractiveGame, config.defaultDelay);
   };
 
   function simulate(){
-    $watch.disabled = true;
+    $simulate.disabled = true;
     $reset.disabled = false;
     $play.disabled = true;
-
     printOutput('Starting simulation!');
 
     var deck = Deck();
     deck.mount($container);
+    printOutput('Shuffling...');
     deck.shuffle();
     table = Hand("table", 0, 0);
-  
-    setTimeout(function(){
-      deck.deal(players);
-    }, config.defaultDelay);
+    function deal(){
+      if (deckshuffled) {
+        printOutput('Dealing...');
+        deck.deal(players);
+      }
+      else {
+        console.log('waiting for cards to be shuffled');
+        setTimeout(deal, config.defaultDelay);
+      }
+    }
+    setTimeout(deal, config.defaultDelay);
 
     gameinprogress = true;
-    let currentPlayer = 0;
-    setTimeout(function(){
-      processTurn(currentPlayer);
-    }, config.defaultDelay);
+    function begin(){
+      if (cardsdealt){
+        processTurn();
+      }
+      else {
+        console.log('waiting for cards to be dealt');
+        setTimeout(begin, config.defaultDelay);
+      }
+    }
+    setTimeout(begin, config.defaultDelay);
   };
 
+  function newGame(){
+    // similar to reset function but maintain games won stats
+  }
+
   function reset(){
-    $watch.disabled = false;
+    $simulate.disabled = false;
     $play.disabled = false;
     $reset.disabled = true;
 
     gameinprogress = false;
     interactive = false;
     isUserTurn = false;
+    pickingUp = false;
+    cardsdealt = false;
+    deckshuffled = false;
     printOutput('Resetting...');
     $('.card-count').remove();
     while ($container.lastChild){
       $container.removeChild($container.lastChild);
     }
+    $("p").remove();
     players = generatePlayers();
     printOutput('...game is now reset');
   };
 
-  var players = generatePlayers();
+  // Define variables
   var table;
+  var cardplayedat;
+  var calculatedReactionTime;
+  var defaultmu = 0.9;
+  var defaultsigma = 0.2;
+  var players = generatePlayers();
   var gameinprogress = false;
   var interactive = false;
   var isUserTurn = false;
-
+  var pickingUp = false;
+  var currentPlayer = 0;
+  var playersAlive = config.playerNames.length;
 });
 //// END GAME
