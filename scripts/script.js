@@ -1,11 +1,11 @@
 ﻿'use strict';
 //// CONFIG
 var config = {
-  numberOfCards: 5,
+  numberOfCards: 52,
   playerNames: [ 'Ashley','Dracula'],
-  turnSpeed: 500,
+  turnSpeed: 600,
   cardSpeed: 200,
-  defaultDelay: 500,
+  defaultDelay: 600,
   defaultDuration: 1000,
   msgSpacing: 25
 };
@@ -25,7 +25,7 @@ function printOutput (text) {
     animationFrames(0,config.defaultDuration)
     .progress(function (t) {
         t = ease.cubicInOut(t)
-        m.style[transform] = translate('50px', (startY + ((endY-startY) * t)) + 'px')
+        m.style[transform] = translate(($(document).width()/2 - 100) + 'px', (startY + ((endY-startY) * t)) + 'px')
     })
     .end(function() {
     })
@@ -49,7 +49,7 @@ function printOutput (text) {
     .progress(function (t) {
       t = ease.cubicInOut(t)
       $message.style.opacity = t;
-      $message.style[transform] = translate('50px', (-200 * t) + 'px')
+      $message.style[transform] = translate(($(document).width()/2 - 100) + 'px', (-200 * t) + 'px')
     })
     .end(function () {
         setTimeout(function() {
@@ -57,7 +57,7 @@ function printOutput (text) {
         }, 4000);
     })
 }
-function showInstructions(text, x=200,y=100){
+function showInstructions(text){
   console.log('INSTRUCTION: ' + text);
   var animationFrames = Deck.animationFrames
   var ease = Deck.ease
@@ -72,7 +72,7 @@ function showInstructions(text, x=200,y=100){
     .progress(function (t) {
       t = ease.cubicInOut(t)
       $message.style.opacity = t;
-      $message.style[transform] = translate(x + 'px', (y * t) + 'px')
+      $message.style[transform] = translate(($(document).width()/2 - 100) + 'px', (-80 * t) + 'px')
     })
     .end(function () {
         setTimeout(function() {
